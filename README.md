@@ -20,7 +20,7 @@ This repository contains open-source software for interfacing with a smart meter
 ## Installation
 Please clone the repository to your local machine from 
 
-https://github.com/[username]/[repository-name].git
+https://github.com/MFA-Informatik-AG/sm-mbus-cii-reader
 
 
 ## Setting Up the Development Environment
