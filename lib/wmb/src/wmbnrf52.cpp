@@ -10,6 +10,8 @@
  * @author MFA Informatik AG, Andreas Schneider
  */
 
+#ifdef NRF52_SERIES
+
 #include "mylog.h"
 #include "wmbnrf52.h"
 #include "appsettings-nrf52.h"
@@ -89,7 +91,7 @@ void WmbNrf52::startWatchDog()
 	MyLog::log("NRF52", "Start Watchdog");
 
 	NRF_WDT->CONFIG         = 0x01;     							            // Configure WDT to run when CPU is asleep
-	NRF_WDT->CRV			= ((m_appConfig.g_appTimer / 1000) * 3) * 32768;	// Timeout (*3 for margin) to App Timer (value in sec * 32768)
+	NRF_WDT->CRV			= ((m_appConfig.appTimer / 1000) * 3) * 32768;		// Timeout (*3 for margin) to App Timer (value in sec * 32768)
 	NRF_WDT->RREN           = 0x01;     							            // Enable the RR[0] reload register
 	NRF_WDT->TASKS_START    = 1;        							            // Start WDT       
 }
@@ -120,20 +122,20 @@ void WmbNrf52::resetWatchDog()
 void WmbNrf52::initApp(void)
 {
     // set the initial repeat time, must be set otherwise there is an issue with the wisblock api
-    g_lorawan_settings.send_repeat_time = m_appConfig.g_appTimer;
+    g_lorawan_settings.send_repeat_time = m_appConfig.appTimer;
     g_lorawan_settings.confirmed_msg_enabled = LMH_CONFIRMED_MSG;
 }
 
 /**
  * 
- * @brief Check if WLAN is connected
+ * @brief Connect/Check if WLAN is connected
  * 
- * This function is used to check if WLAN is connected.
+ * This function is used to connect/check if WLAN is connected.
  * 
  * @return true if WLAN is connected
  * @return false if WLAN is not connected
 */
-bool WmbNrf52::isWlanConnected()
+bool WmbNrf52::connectWlan()
 {
     lmh_join_status join_status = lmh_join_status_get();
 
@@ -311,4 +313,4 @@ lmh_error_status WmbNrf52::enqueueDataPacket(const uint8_t *data, size_t size, u
 	return lmh_error_status::LMH_SUCCESS;
 }
 
-
+#endif

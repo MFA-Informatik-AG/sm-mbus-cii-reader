@@ -35,7 +35,6 @@ class Wmb
     private:
         static const int SM_GBT_MAXFRAMESIZE = 1024;            // maximum size of the GBT frame
 
-        uint32_t g_appTimer = AppConfig::SM_MEASURE_INTERVAL;	// measurement intervall (=wakeup timer in ms)
         uint16_t m_send_fail = 0;								// counter, WAN send fails
         uint32_t m_sm_readLoops = 0;							// counter, total of read loops
 

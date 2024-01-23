@@ -1,7 +1,7 @@
+# Work in Progress (DEV)
+- Esp32 with WLAN support
 
 # ToDo's
-
-- Esp32 with WLAN support
 - Decryption of encrypted Smart Meter data
 - Refactor Cayenne channels
 - Switching BLE on/off via LoRaWAN 

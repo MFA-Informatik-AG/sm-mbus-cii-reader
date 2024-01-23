@@ -6,6 +6,8 @@
  * 
  * @version 1.0
  * @author MFA Informatik AG, Andreas Schneider
+ * @date 23.01.2024
+ * 
  */
 
 #pragma once

@@ -8,9 +8,14 @@
  * The setup_app(), init_app(), app_event_handler(), and lora_data_handler() functions are defined here.
  * It also includes callback functions for GBT and HDLC frame handling.
  * 
- * @version 1.0
+ * @version 1.1.0
  * @author MFA Informatik AG, Andreas Schneider
+ * @date 23.01.2024
+ * 
+ * Version History:
+ * 1.1.0	23.01.2024  Added MY_BLE_ENABLED to enable/disable BLE
  */
+
 #include <WisBlock-API-V2.h>
 
 #include "appconfig.h"
@@ -21,7 +26,6 @@
 #include "dlms.h"
 #include "hdlc.h"
 #include "smlg450.h"
-#include "wmbnrf52.h"
 
 #include "main.h"
 
@@ -35,12 +39,15 @@ Hdlc m_hdlc(hdlc_frame_handler);													// m_hdlc protocol handler
 SmLg450 m_lg450;																	// smartmeter handler
 
 #ifdef NRF52_SERIES
+#include "wmbnrf52.h"
 WmbNrf52 m_wmbnrf52(m_smCayenne, m_appConfig);										// wisblock nr52 mcu
 WbMcuBase& m_wmb = m_wmbnrf52;													
 #endif
 
-#ifdef ARDUINO_ARCH_ESP32
-//todo: add esp32 mcu
+#ifdef ESP32
+#include "wmbesp32.h"
+WmbEsp32 m_wmbesp32(m_smCayenne, m_appConfig);										// wisblock esp32 mcu
+WbMcuBase& m_wmb = m_wmbesp32;
 #endif
 
 Wmb wmb(m_wmb, m_lg450, m_gbt, m_dlms, m_hdlc, m_smCayenne, m_appConfig);			// wmb controller 
@@ -82,7 +89,7 @@ void setup_app()
 
 #endif
 
-#if MY_BLE_DEBUG > 0
+#if MY_BLE_ENABLED > 0
 	
 	g_enable_ble=true;	// enable ble (required for wisblock)	 	 
 
@@ -124,12 +131,14 @@ bool init_app()
 	wmb.initApp();
 
 	// now the timer can be set
-	api_timer_restart(m_appConfig.g_appTimer);
+	api_timer_restart(m_appConfig.appTimer);
 
-	MyLog::log("APP", "..set LoRaWAN timer (wakeup from deep sleep) to %d ms", m_appConfig.g_appTimer);
+	MyLog::log("APP", "..set WAN timer (wakeup from deep sleep) to %d ms", m_appConfig.appTimer);
 
 	// initializes smartmeter AT commands
 	smcustom_at_init();
+
+	MyLog::log("APP", "..init custom AT commands completed");
 
 	MyLog::log("APP", "Init app completed");
 
@@ -175,7 +184,8 @@ void app_event_handler()
  * 
  * @brief LoRaWAN data event handler called from the WisBlock framework
  * 
- * 
+ * This function is called from the WisBlock framework if a LoRaWAN data event occurs. 
+ * Would be better in the MCU class but it was not possible to implement it there (as for now).
 */
 void lora_data_handler()
 {

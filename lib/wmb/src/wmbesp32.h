@@ -1,6 +1,6 @@
 /**
- * @file wmbnrf52.h
- * @brief This class represents the WmbNrf52 module, which is a subclass of WbMcuBase.
+ * @file Wmbesp32.h
+ * @brief This class represents the Wmbesp32 module, which is a subclass of WbMcuBase.
  * 
  * It provides functionality for handling data, initializing the application, starting and resetting the watchdog,
  * delaying with LED, and enqueueing data packets. It also contains constants for maximum payload size, packet delay,
@@ -12,13 +12,13 @@
 #pragma once
 
 #include "smcayenne.h"
-#include "appsettings-nrf52.h"
+#include "appsettings-esp32.h"
 #include "wbmcubase.h"
 
-class WmbNrf52 : public WbMcuBase
+class WmbEsp32 : public WbMcuBase
 {
     public:
-        WmbNrf52(SmCayenne& smCayenne, AppConfig& appConfig);
+        WmbEsp32(SmCayenne& smCayenne, AppConfig& appConfig);
         bool connectWlan() override;
         void dataHandler(uint16_t& event_type) override;
         void initApp() override;
@@ -30,12 +30,8 @@ class WmbNrf52 : public WbMcuBase
         bool saveConfiguration(AppConfig const& appConfig) override;
 
     private:
-        static const int SM_LORA_MAXPAYLOAD = 222;
-        static const int SM_LORA_PACKET_DELAY_MS = 5000;
-        static const int SM_LORA_PACKET_SIZESTEP = 10;
-        static const int SM_LORA_SEND_REPEATER = 10;
 
-        uint16_t m_send_fail = 0;								// counter, lora send fails
+        uint16_t m_send_fail = 0;								// counter, send fails
 
         SmCayenne &m_smCayenne;
         AppConfig &m_appConfig;

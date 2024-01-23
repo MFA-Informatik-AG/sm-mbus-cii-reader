@@ -308,7 +308,7 @@ void SmCayenne::smDecodeReceivedAppSettings(uint8_t const* data, size_t size, Ap
 		{
 			if (type == SMDECODE_UINT32)
 			{
-				config.measureInterval = getUint32FromByteArray(data, index);
+				config.appTimer = getUint32FromByteArray(data, index);
 			}
 		}
 

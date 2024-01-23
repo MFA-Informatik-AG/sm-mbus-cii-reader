@@ -1,8 +1,8 @@
 /**
- * @file appsettings-nrf52.cpp
- * @brief Implementation of the AppSettings class for NRF52 series.
+ * @file appsettings-esp32.cpp
+ * @brief Implementation of the AppSettings class for ESP32 series.
  * 
- * This file contains the implementation of the AppSettings class for the NRF52 series. 
+ * This file contains the implementation of the AppSettings class for the ESP32 series. 
  * It provides functions for initializing and saving configuration settings to flash memory, 
  * as well as loading and resetting the configuration. The configuration settings include 
  * parameters such as measure interval, send data type, decryption flag, cycle timeout, 
@@ -12,11 +12,12 @@
  * @author MFA Informatik AG, Andreas Schneider
  */
 
-#ifdef NRF52_SERIES
+#ifdef ESP32
 
 #include <ArduinoJson.h>
+#include <Preferences.h>
 
-#include "appsettings-nrf52.h"
+#include "appsettings-esp32.h"
 #include "mylog.h"
 
 /**
@@ -53,10 +54,6 @@ void AppSettings::resetConfiguration(AppConfig& config)
     config.sendDataType = AppConfig::SM_SENDDATATYPE_GBTPARSED;
     config.decryptData = false;
     config.smCycleTimeout = AppConfig::SM_CYCLE_TIMEOUT;
-
-    InternalFS.remove(AppSettings::SETTINGSFILENAME);
-
-    // saveConfiguration(config);
 }
 
 /**
@@ -115,23 +112,13 @@ bool AppSettings::saveConfiguration(AppConfig const& config)
 
     serializeJson(doc, flash_buffer);
 
-    Adafruit_LittleFS_Namespace::File lora_file(InternalFS);
+    Preferences lora_prefs;
 
-    InternalFS.remove(AppSettings::SETTINGSFILENAME);
+    lora_prefs.begin("WMB_SETTINGS", false);
 
-    lora_file.open(AppSettings::SETTINGSFILENAME, Adafruit_LittleFS_Namespace::FILE_O_WRITE);
-    
-    if (!lora_file)
-    {
-        MyLog::log("APPSETTINGS", "Failed to open file for writing");
+    lora_prefs.putBytes(AppSettings::SETTINGSFILENAME, flash_buffer, sizeof(flash_buffer));
 
-        return false;
-    }
-
-    lora_file.write(flash_buffer, sizeof(flash_buffer));
-    
-    lora_file.flush();
-    lora_file.close();
+	lora_prefs.end();
 
     MyLog::log("APPSETTINGS", "Write file successfully");
 
@@ -164,23 +151,13 @@ bool AppSettings::loadConfiguration(AppConfig& config)
 
     MyLog::log("APPSETTINGS", "Read data from flash");
 
-    Adafruit_LittleFS_Namespace::File lora_file(InternalFS);
+    Preferences lora_prefs;
 
-    lora_file.open(AppSettings::SETTINGSFILENAME, Adafruit_LittleFS_Namespace::FILE_O_READ);
-	
-    if (!lora_file)
-	{
-        MyLog::log("APPSETTINGS", "Failed to read file, using default configuration");
+    lora_prefs.begin("WMB_SETTINGS", false);
 
-        resetConfiguration(config);
+    lora_prefs.getBytes(AppSettings::SETTINGSFILENAME, flash_buffer, sizeof(flash_buffer));
 
-        return false;
-    }   
-
-    MyLog::log("APPSETTINGS", "Read file successfully");
-
-    lora_file.read(flash_buffer, sizeof(flash_buffer));
-    lora_file.close();
+	lora_prefs.end();
 
     StaticJsonDocument<1024> doc;
 

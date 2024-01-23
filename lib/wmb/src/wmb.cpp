@@ -12,6 +12,7 @@
  * 
  * @version 1.0
  * @author MFA Informatik AG, Andreas Schneider
+ * 
  */
 #include "gbtdata.h"					
 #include "mylog.h"						
@@ -50,8 +51,6 @@ Wmb::Wmb(WbMcuBase& wbMcu, SmBase& smartmeter, Gbt& gbt, Dlms& dlms, Hdlc& Hdlc,
 void Wmb::dataHandler(uint16_t event_type)
 {
     m_wbMcu.dataHandler(event_type);
-
-    m_wbMcu.resetWatchDog();
 }
 
 /**
@@ -78,7 +77,7 @@ bool Wmb::initApp()
 
 	m_wbMcu.loadConfiguration(m_appConfig);
 
-	MyLog::log("APPSETTINGS", "...measureInterval: %d", m_appConfig.measureInterval);
+	MyLog::log("APPSETTINGS", "...appTimer: %d", m_appConfig.appTimer);
     MyLog::log("APPSETTINGS", "...sendDataType: %d", m_appConfig.sendDataType);
     MyLog::log("APPSETTINGS", "...decryptData: %d", m_appConfig.decryptData);
     MyLog::log("APPSETTINGS", "...smCycleTimeout: %d", m_appConfig.smCycleTimeout);
@@ -91,8 +90,6 @@ bool Wmb::initApp()
 	}
 
 	MyLog::log("WMB", "...reading global values for WisBlock timer");
-
-	g_appTimer = m_appConfig.measureInterval;
 
     m_wbMcu.initApp();
 
@@ -115,7 +112,7 @@ void Wmb::smReadSendcycle()
 	// adds the adapter states into the cayenne buffer
 	wmbadaper_addStates(m_smCayenne);
 
-	if(!m_wbMcu.isWlanConnected())
+	if(!m_wbMcu.connectWlan())
 	{
 		MyLog::log("WMB", "WLAN not connected, skip sending");
 
