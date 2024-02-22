@@ -113,6 +113,21 @@ void WmbNrf52::resetWatchDog()
 
 /**
  * 
+ * @brief Deep sleep
+ * 
+ * This function is used to put the device into deep sleep mode.
+ * 
+*/
+
+void WmbNrf52::smDeepSleep()
+{
+	// not implemented, handled from the WisBlock framework
+
+}
+
+
+/**
+ * 
  * @brief Initialize the application
  * 
  * This function is used to initialize the application. It sets the initial repeat time and the confirmed message

@@ -177,6 +177,13 @@ void app_event_handler()
 		
 		wmb.smReadSendcycle();
 	}
+
+	if(g_task_event_type == NO_EVENT)
+	{
+		MyLog::log("APP", "App event handler no pending event, goto deep sleep");
+
+		wmb.smDeepSleep();
+	}
 }
 
 

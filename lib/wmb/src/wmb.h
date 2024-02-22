@@ -31,6 +31,7 @@ class Wmb
         void dataHandler(uint16_t event_type);                                                                                      // handle data received from the WAN                  
         void gbtFrameHandler(uint8_t const* data, size_t const size);                                                               // handle GBT frames received from the smart meter
         void hdlcFrameHandler(uint8_t const* data, size_t const size, bool const valid);                                            // handle HDLC frames received from the smart meter
+        void smDeepSleep();                                                                                                         // put the smart meter into deep sleep mode
 
     private:
         static const int SM_GBT_MAXFRAMESIZE = 1024;            // maximum size of the GBT frame

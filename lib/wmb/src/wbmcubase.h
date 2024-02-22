@@ -30,5 +30,6 @@ class WbMcuBase
         virtual lmh_error_status enqueueDataPacket(const uint8_t *data, size_t size, uint8_t fport) = 0;        // enqueue a data packet to be sent over WAN
         virtual bool loadConfiguration(AppConfig& appConfig);                                                   // load flash stored settings
         virtual bool saveConfiguration(AppConfig const& appConfig);                                             // save settings to flash
+        virtual void smDeepSleep() = 0;                                                                         // put the smart meter into deep sleep mode
 
 };

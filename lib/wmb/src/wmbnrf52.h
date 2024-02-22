@@ -28,6 +28,7 @@ class WmbNrf52 : public WbMcuBase
         lmh_error_status enqueueDataPacket(const uint8_t *data, size_t size, uint8_t fport) override;
         bool loadConfiguration(AppConfig& appConfig) override;
         bool saveConfiguration(AppConfig const& appConfig) override;
+        void smDeepSleep() override;
 
     private:
         static const int SM_LORA_MAXPAYLOAD = 222;

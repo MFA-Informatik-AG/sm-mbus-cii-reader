@@ -99,10 +99,12 @@ void WmbEsp32::delayWithLed(time_t delayWithLedTimeOut)
 */
 void WmbEsp32::startWatchDog()
 {
-	MyLog::log("ESP32", "Start Watchdog");
+	uint32_t timeout = m_appConfig.appTimer * 3;
+
+	MyLog::log("ESP32", "Start Watchdog with %d sec.", timeout);
 
 	// https://iotassistant.io/esp32/enable-hardware-watchdog-timer-esp32-arduino-ide/
-	esp_task_wdt_init(m_appConfig.appTimer * 3, true);
+	esp_task_wdt_init(timeout, true);
 }
 
 /**
@@ -119,6 +121,14 @@ void WmbEsp32::resetWatchDog()
 
 	esp_task_wdt_reset();
 }
+
+void WmbEsp32::smDeepSleep()
+{
+	MyLog::log("ESP32", "Set MCU into deep sleep mode");
+
+	esp_deep_sleep_start();
+}
+
 
 /**
  * 
@@ -138,7 +148,18 @@ void WmbEsp32::initApp(void)
 
 	MyLog::log("ESP32", "Init WLAN");
 
-	init_wifi();
+	// creates the unique device name based on the esp32 mac address
+	// required also to xor ble data
+	create_dev_name();
+
+	MyLog::log("ESP32", "Device name set to %s", g_ap_name);
+
+	// esp32 specific deep sleep
+	uint32_t sleepTime = m_appConfig.appTimer * 1000;
+
+	MyLog::log("ESP32", "Init deep sleep wakeup timer %d us", sleepTime);
+
+	esp_sleep_enable_timer_wakeup(sleepTime);
 }
 
 /**
@@ -154,6 +175,11 @@ bool WmbEsp32::connectWlan()
 {
 	if(!g_wifi_connected)
 	{
+		g_ssid_prim = "";
+		g_pw_prim = "";
+		g_ssid_sec = "";
+		g_pw_sec = "";
+
 		init_wifi();
 	}
 
@@ -186,6 +212,8 @@ void WmbEsp32::dataHandler(uint16_t& event_type)
 lmh_error_status WmbEsp32::enqueueDataPacket(const uint8_t *data, size_t size, uint8_t fport)
 {
 	MyLog::log("ESP32", "WiFi send %d bytes to port %d", size, fport);
+
+	MyLog::logHex("ESP32", "..enqueue data packet: ", data, size);
 
 	uint8_t repeatBusy = 0;
 	uint8_t errorCount = 0;
@@ -222,17 +250,18 @@ lmh_error_status WmbEsp32::enqueueDataPacket(const uint8_t *data, size_t size, u
 
 	MyLog::log("ESP32", "connected to server %s", m_appConfig.apiep_hostname.c_str());
 
-	String sendData = "key1=value1&key2=value2";  // Customize this as needed
+	String sendData = "{'key1': 'value1',";  
+	sendData += "'key2':'" + uint8ToHexString((uint8_t*) data, size) + "'}";
 
 	// Create the HTTP request
 	String postRequest = "POST " + String(m_appConfig.apiep_url.c_str()) + " HTTP/1.1\r\n";
 	postRequest += "Host: " + String(m_appConfig.apiep_hostname.c_str()) + "\r\n";
-	postRequest += "Content-Type: application/x-www-form-urlencoded\r\n";
+	postRequest += "Content-Type: application/json\r\n";
 	postRequest += "Content-Length: " + String(sendData.length()) + "\r\n";
 	postRequest += "Connection: close\r\n\r\n";
 	postRequest += sendData;
 
-	MyLog::log("ESP32", "Sending POST request: %s", postRequest);
+	MyLog::log("ESP32", "Sending POST request: %s", postRequest.c_str());
 
 	// Send the POST request
 	client.print(postRequest);
@@ -245,7 +274,7 @@ lmh_error_status WmbEsp32::enqueueDataPacket(const uint8_t *data, size_t size, u
 		{
 			String line = client.readStringUntil('\r');
 
-			MyLog::log("ESP32", "Response: %s", line);
+			MyLog::log("ESP32", "Response: %s", line.c_str());
 		}
 		else
 		{
@@ -254,6 +283,25 @@ lmh_error_status WmbEsp32::enqueueDataPacket(const uint8_t *data, size_t size, u
 	}
 
 	return lmh_error_status::LMH_SUCCESS;
+}
+
+String WmbEsp32::uint8ToHexString(uint8_t *data, size_t length) 
+{
+	String hexString = "";
+    
+	for (size_t i = 0; i < length; i++) {
+    
+        if (data[i] < 0x10) 
+		{
+			hexString += "0"; 
+		}
+        
+		hexString += String(data[i], HEX);
+    }
+    
+	hexString.toUpperCase(); 
+    
+	return hexString;
 }
 
 #endif

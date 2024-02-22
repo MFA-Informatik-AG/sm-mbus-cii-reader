@@ -63,6 +63,16 @@ void Wmb::setupApp()
 
 
 /**
+ * @brief Puts the smart meter into deep sleep mode.
+ * 
+ * This function puts the smart meter into deep sleep mode.
+ */
+void Wmb::smDeepSleep()
+{
+	m_wbMcu.smDeepSleep();
+}
+
+/**
  * @brief Initializes the WMB application.
  * 
  * This function initializes the WMB application 
@@ -267,7 +277,7 @@ void Wmb::hdlcFrameHandler(const uint8_t *data, size_t const size, bool const va
 
 	MyLog::logHex("WMB", "Frame content: ", data, size);
 
-	// remove the m_hdlc header and footer
+	// remove the HDLC header and footer
     uint8_t hdlcData[size];
     size_t hdlcDataSize = size - 8;
 
@@ -316,12 +326,12 @@ void Wmb::smReadcycle()
 
 	MyLog::log("WMB", "...serial port opened");
 
-	MyLog::log("WMB", "...reset the m_hdlc protocol handler");
+	MyLog::log("WMB", "...reset the HDLC protocol handler");
 
 	// reset the m_dlms receive buffer
 	m_dlms.reset();
 
-	MyLog::log("WMB", "...m_hdlc protocol handler reset");
+	MyLog::log("WMB", "...HDLC protocol handler reset");
 
 	MyLog::log("WMB", "...set the receive cycle with timeout %u", m_appConfig.smCycleTimeout);
 
@@ -352,7 +362,7 @@ void Wmb::smReadcycle()
 
 				digitalWrite(LED_BUILTIN, newState);
 
-				// enqueue the byte into the m_hdlc protocol handler
+				// enqueue the byte into the HDLC protocol handler
 				m_hdlc.charReceiver((uint8_t) number);
 			}
 		}

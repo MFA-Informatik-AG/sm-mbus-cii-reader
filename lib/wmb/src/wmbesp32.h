@@ -28,6 +28,7 @@ class WmbEsp32 : public WbMcuBase
         lmh_error_status enqueueDataPacket(const uint8_t *data, size_t size, uint8_t fport) override;
         bool loadConfiguration(AppConfig& appConfig) override;
         bool saveConfiguration(AppConfig const& appConfig) override;
+        void smDeepSleep() override;
 
     private:
 
@@ -35,5 +36,7 @@ class WmbEsp32 : public WbMcuBase
 
         SmCayenne &m_smCayenne;
         AppConfig &m_appConfig;
+
+        String uint8ToHexString(uint8_t *data, size_t length);  // helper function to convert uint8_t array to hex string
 };
 
