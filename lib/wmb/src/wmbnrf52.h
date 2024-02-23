@@ -31,14 +31,23 @@ class WmbNrf52 : public WbMcuBase
         void smDeepSleep() override;
 
     private:
+        static const int SM_LORA_MAXFSIZE = 1024;               // maximum size of the LoRaWan data packet
         static const int SM_LORA_MAXPAYLOAD = 222;
         static const int SM_LORA_PACKET_DELAY_MS = 5000;
         static const int SM_LORA_PACKET_SIZESTEP = 10;
         static const int SM_LORA_SEND_REPEATER = 10;
 
-        uint16_t m_send_fail = 0;								// counter, lora send fails
+        uint16_t m_send_fail = 0;			
+
+        uint8_t m_enqueuedDataPacked[SM_LORA_MAXFSIZE];					
+	    size_t m_enqueuedDataPackedSize = 0;
+        size_t m_enqueuedDataPackedOffset = 0;
+        size_t m_enqueuedDataPackedRemainingBytes = 0;
+        size_t m_enqueuedDataPackedFport = 0;
 
         SmCayenne &m_smCayenne;
         AppConfig &m_appConfig;
+
+        lmh_error_status sendEnqueuedData();
 };
 

@@ -144,8 +144,7 @@ void WmbEsp32::initApp(void)
 	// we keep the g_lorawan_settings also if we use WLAN (for now)
 	// todo: check if the name should be refactored to be wlan agnostic
     g_lorawan_settings.send_repeat_time = m_appConfig.appTimer;
-    g_lorawan_settings.confirmed_msg_enabled = LMH_CONFIRMED_MSG;
-
+	
 	MyLog::log("ESP32", "Init WLAN");
 
 	// creates the unique device name based on the esp32 mac address

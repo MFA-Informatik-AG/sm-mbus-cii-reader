@@ -138,6 +138,8 @@ void WmbNrf52::initApp(void)
 {
     // set the initial repeat time, must be set otherwise there is an issue with the wisblock api
     g_lorawan_settings.send_repeat_time = m_appConfig.appTimer;
+
+	// LoRaWan messages are send in confirmed mode
     g_lorawan_settings.confirmed_msg_enabled = LMH_CONFIRMED_MSG;
 }
 
@@ -203,15 +205,15 @@ void WmbNrf52::dataHandler(uint16_t& event_type)
 			// increase fail send counter
 			m_send_fail++;
 
-			MyLog::log("NRF52", "LoRaWAN failed NAK counter %d", m_send_fail);
+			MyLog::log("NRF52", "LoRaWAN NAK counter %d", m_send_fail);
 
 			if (m_send_fail < SM_LORA_SEND_REPEATER)
 			{
-				if(m_smCayenne.getSize() > 0)
+				if(m_enqueuedDataPackedRemainingBytes > 0)
 				{
-					MyLog::log("NRF52", "LoRaWAN failed sending, repeat enqueue last packet");
+					MyLog::log("NRF52", "LoRaWAN failed sending, repeat send remaining %d bytes", m_enqueuedDataPackedRemainingBytes);
 
-					enqueueDataPacket(m_smCayenne.getBuffer(), m_smCayenne.getSize(), 0);
+					sendEnqueuedData();
 				}
 			}
 			else
@@ -259,37 +261,64 @@ void WmbNrf52::dataHandler(uint16_t& event_type)
 */
 lmh_error_status WmbNrf52::enqueueDataPacket(const uint8_t *data, size_t size, uint8_t fport)
 {
-	MyLog::log("NRF52", "LoRaWAN send %d bytes to port %d", size, fport);
+	MyLog::log("NRF52", "LoRaWAN enqueue %d bytes to port %d", size, fport);
 
-	MyLog::logHex("NRF52", "..enqueue Lora packet: ", data, size);
+	MyLog::logHex("NRF52", "LoRaWAN enqueued data : ", data, size);
 
-	// https://lora-developers.semtech.com/documentation/tech-papers-and-guides/the-book/packet-size-considerations
-	size_t loraPayloadSize = min((size_t) SM_LORA_MAXPAYLOAD, size); 
-	size_t remainingBytes = size;
-	size_t offset = 0;
+	if(size > SM_LORA_MAXFSIZE)
+	{
+		MyLog::log("NRF52", "LoRaWAN packet size too big, max %d bytes", SM_LORA_MAXFSIZE);
+
+		return lmh_error_status::LMH_ERROR;
+	}
+
+	// copy the data to the enqueued buffer
+	memcpy(m_enqueuedDataPacked, data, size);
+
+	// initialize the enqueued data
+	m_enqueuedDataPackedSize = size;
+	m_enqueuedDataPackedOffset = 0;
+	m_enqueuedDataPackedRemainingBytes = size;
+	m_enqueuedDataPackedFport = fport;
+
+	// send the enqueued data
+	sendEnqueuedData();
+}
+
+/**
+ * 
+ * @brief Send LoRaWAN packet helper
+ * 
+ * This helper is used to send a LoRaWAN packet. The packet is sent in chunks if required. The chunks are
+ * sent one after the other. If the LoRaWAN transceiver is busy the sending is repeated after a delay.
+ * 
+*/
+lmh_error_status WmbNrf52::sendEnqueuedData()
+{
+	size_t loraPayloadSize = min((size_t) SM_LORA_MAXPAYLOAD, m_enqueuedDataPackedRemainingBytes); 
 	uint8_t repeatBusy = 0;
 	uint8_t errorCount = 0;
 
-	while(offset < size)
+	while(m_enqueuedDataPackedOffset < m_enqueuedDataPackedSize)
 	{
-		size_t loraPacketSize = min(loraPayloadSize, remainingBytes);
+		size_t loraPacketSize = min(loraPayloadSize, m_enqueuedDataPackedRemainingBytes);
 
-		MyLog::log("NRF52", ".. queue Lora packet, maxLoraPayload %d, remainingBytes %d", loraPayloadSize, remainingBytes);
+		MyLog::log("NRF52", ".. send queued Lora packet, maxLoraPayload %d, remainingBytes %d", loraPayloadSize, m_enqueuedDataPackedRemainingBytes);
 
 		uint8_t sendData[loraPacketSize];
 
-		memcpy(sendData, data + offset, loraPacketSize);
+		memcpy(sendData, m_enqueuedDataPacked + m_enqueuedDataPackedOffset, loraPacketSize);
 
-		lmh_error_status result = send_lora_packet(sendData, loraPacketSize, fport);
+		lmh_error_status result = send_lora_packet(sendData, loraPacketSize, m_enqueuedDataPackedFport);
 
-		MyLog::log("NRF52", ".. Lora packet, offset %d, size %d, repeatBusy %d", offset, loraPacketSize, repeatBusy);
+		MyLog::log("NRF52", ".. Lora packet, offset %d, size %d, repeatBusy %d", m_enqueuedDataPackedOffset, loraPacketSize, repeatBusy);
 
 		switch (result)
 		{
 			case LMH_SUCCESS:
 				MyLog::log("NRF52", "LoRaWAN packet enqueued");
-				offset += loraPacketSize;
-				remainingBytes -= loraPacketSize;
+				m_enqueuedDataPackedOffset += loraPacketSize;
+				m_enqueuedDataPackedRemainingBytes -= loraPacketSize;
 				repeatBusy = 0;
 				break;
 			case LMH_BUSY:
@@ -299,7 +328,7 @@ lmh_error_status WmbNrf52::enqueueDataPacket(const uint8_t *data, size_t size, u
 				break;
 			case LMH_ERROR:
 				errorCount++;
-				MyLog::log("NRF52", "LoRaWAN packet error count %d, maybe too big with %d bytes to send with current datarate", errorCount, loraPayloadSize);
+				MyLog::log("NRF52", "LoRaWAN error, count %d, maybe package too big with %d bytes to send", errorCount, loraPayloadSize);
 				if(errorCount > 2)
 				{
 					loraPayloadSize -= SM_LORA_PACKET_SIZESTEP;
@@ -323,6 +352,9 @@ lmh_error_status WmbNrf52::enqueueDataPacket(const uint8_t *data, size_t size, u
 
 			return lmh_error_status::LMH_ERROR;
 		}
+
+		// loop is running, should be ok
+		resetWatchDog();
 	}
 
 	return lmh_error_status::LMH_SUCCESS;
