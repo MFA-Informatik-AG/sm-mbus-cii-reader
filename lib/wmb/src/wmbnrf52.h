@@ -33,7 +33,7 @@ class WmbNrf52 : public WbMcuBase
     private:
         static const int SM_LORA_MAXFSIZE = 1024;                   // maximum size of the LoRaWan data packet buffer
         static const int SM_LORA_MAXPAYLOAD = 111;                  // maximum initial payload size
-        static const int SM_LORA_PACKET_DELAY_MS = 15000;           // delay between LoRaWAN packets if busy
+        static const int SM_LORA_PACKET_DELAY_MS = 8000;            // default delay between sending LoRaWAN packets or if busy
         static const int SM_LORA_PACKET_SIZESTEP = 10;              // decrese step for LoRaWAN payload packet size
         static const int SM_LORA_SEND_REPEATER = 10;                // number of times to repeat sending LoRaWAN packet
 

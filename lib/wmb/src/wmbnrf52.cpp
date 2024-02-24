@@ -306,6 +306,7 @@ lmh_error_status WmbNrf52::sendEnqueuedData()
 			case LMH_SUCCESS:
 				MyLog::log("NRF52", "LoRaWAN packet enqueued");				
 				repeatBusy = 0;
+				m_send_fail = 0;		// ACK/NAK is not reliable in the callback, assume LMH_SUCCESS is a good sign ;-)
 				m_enqueuedDataPackedOffset += m_enqueuedDataLoraPacketSize;
 				m_enqueuedDataPackedRemainingBytes -= m_enqueuedDataLoraPacketSize;
 				delayWithLed(SM_LORA_PACKET_DELAY_MS);
