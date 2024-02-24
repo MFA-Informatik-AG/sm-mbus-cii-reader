@@ -31,23 +31,24 @@ class WmbNrf52 : public WbMcuBase
         void smDeepSleep() override;
 
     private:
-        static const int SM_LORA_MAXFSIZE = 1024;               // maximum size of the LoRaWan data packet
-        static const int SM_LORA_MAXPAYLOAD = 222;
-        static const int SM_LORA_PACKET_DELAY_MS = 5000;
-        static const int SM_LORA_PACKET_SIZESTEP = 10;
-        static const int SM_LORA_SEND_REPEATER = 10;
+        static const int SM_LORA_MAXFSIZE = 1024;                   // maximum size of the LoRaWan data packet buffer
+        static const int SM_LORA_MAXPAYLOAD = 111;                  // maximum initial payload size
+        static const int SM_LORA_PACKET_DELAY_MS = 15000;           // delay between LoRaWAN packets if busy
+        static const int SM_LORA_PACKET_SIZESTEP = 10;              // decrese step for LoRaWAN payload packet size
+        static const int SM_LORA_SEND_REPEATER = 10;                // number of times to repeat sending LoRaWAN packet
 
-        uint16_t m_send_fail = 0;			
+        uint16_t m_send_fail = 0;			                        // number of failed LoRaWAN packet sends
 
-        uint8_t m_enqueuedDataPacked[SM_LORA_MAXFSIZE];					
-	    size_t m_enqueuedDataPackedSize = 0;
-        size_t m_enqueuedDataPackedOffset = 0;
-        size_t m_enqueuedDataPackedRemainingBytes = 0;
-        size_t m_enqueuedDataPackedFport = 0;
+        uint8_t m_enqueuedDataBuffer[SM_LORA_MAXFSIZE];			    // buffer for enqueued data		
+	    size_t m_enqueuedDataPackedSize = 0;                        // size of enqueued data
+        size_t m_enqueuedDataPackedOffset = 0;                      // offset of enqueued data
+        size_t m_enqueuedDataPackedRemainingBytes = 0;              // remaining bytes of enqueued data
+        size_t m_enqueuedDataPackedFport = 0;                       // fport of enqueued data
+        size_t m_enqueuedDataLoraPacketSize =0;                     // size of transmitted LoRaWAN packet
 
-        SmCayenne &m_smCayenne;
-        AppConfig &m_appConfig;
+        SmCayenne &m_smCayenne;                                     // reference to SmCayenne object
+        AppConfig &m_appConfig;                                     // reference to AppConfig object
 
-        lmh_error_status sendEnqueuedData();
+        lmh_error_status sendEnqueuedData();                        // send enqueued data over LoRaWAN
 };
 

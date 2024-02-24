@@ -65,6 +65,7 @@ bool WmbEsp32::saveConfiguration(AppConfig const& appConfig)
 	return AppSettings::saveConfiguration(appConfig);
 }
 
+
 /**
  * 
  * @brief Delay with LED helper
@@ -72,20 +73,15 @@ bool WmbEsp32::saveConfiguration(AppConfig const& appConfig)
  * This helper is used to signal that something is going on. The LED is turned on and off during the delay.
  * 
 */
-void WmbEsp32::delayWithLed(time_t delayWithLedTimeOut)
+void WmbNrf52::delayWithLed(time_t delayWithLedTimeOut)
 {
 	time_t timeout = millis();
 
-	while (!Serial)
+	while ((millis() - timeout) < delayWithLedTimeOut)
 	{
-		if ((millis() - timeout) < delayWithLedTimeOut)
-		{
-			digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
-		}
-		else
-		{
-			break;
-		}
+		digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
+
+		delay(100);
 	}
 			
 	digitalWrite(LED_BUILTIN, LOW);

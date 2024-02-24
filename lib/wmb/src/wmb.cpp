@@ -145,7 +145,9 @@ void Wmb::smReadSendcycle()
 
 			if(cayenneError == 0)
 			{
-				m_wbMcu.enqueueDataPacket(m_smCayenne.getBuffer(), gbtSize, 0);
+				lmh_error_status enqueueStatus =m_wbMcu.enqueueDataPacket(m_smCayenne.getBuffer(), gbtSize, 0);
+
+				MyLog::log("WMB", "...enqueued GBT packed result %d", enqueueStatus);
 			}
 			else	
 			{
