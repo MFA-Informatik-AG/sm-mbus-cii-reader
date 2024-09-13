@@ -177,8 +177,6 @@ bool AppSettings::loadConfiguration(AppConfig& config)
         return false;
     }   
 
-    MyLog::log("APPSETTINGS", "Read file successfully");
-
     lora_file.read(flash_buffer, sizeof(flash_buffer));
     lora_file.close();
 

@@ -22,7 +22,7 @@ class WbMcuBase
     public:
         virtual ~WbMcuBase() = default;                                                                         
         virtual bool connectWlan() = 0;                                                                         // connect or check if the WLAN is connected 
-        virtual void dataHandler(uint16_t& event_type) = 0;                                                     // handle data received from the LoRaWAN network
+        virtual void dataHandler(volatile uint16_t& event_type) = 0;                                            // handle data received from the LoRaWAN network
         virtual void initApp() = 0;                                                                             // initialize the MCU
         virtual void startWatchDog() = 0;                                                                       // start the watch dog timer
         virtual void resetWatchDog() = 0;                                                                       // reset the watch dog timer

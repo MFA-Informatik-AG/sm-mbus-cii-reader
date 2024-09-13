@@ -99,6 +99,8 @@ void setup_app()
 
 #endif
 
+	MyLog::log("APP", "Setup app called");
+
 	// Read credentials from wisblock
 	api_read_credentials();
 
@@ -165,6 +167,25 @@ void app_event_handler()
 		MyLog::log("APP", "App event handler timer wakeup");
 		
 		wmb.smReadSendcycle();
+	}
+
+	if ((g_task_event_type & LORA_DATA) == LORA_DATA)
+	{		
+		// flag must be reset (required for wisblock)
+		g_task_event_type &= N_LORA_DATA;
+
+		MyLog::logHex("NRF52", "LoRaWAN RX data packet received: ", g_rx_lora_data, g_rx_data_len);
+
+		SmCayenne smReceived(CAYENNEPAYLOAD);
+
+        // store the settings into the current configuration
+		smReceived.smDecodeReceivedAppSettings(g_rx_lora_data, g_rx_data_len, m_appConfig);
+
+		// save the application configuration
+		wmb.saveAppConfig();
+
+		// restarts the board
+		api_reset();
 	}
 
 	// AT triggered events

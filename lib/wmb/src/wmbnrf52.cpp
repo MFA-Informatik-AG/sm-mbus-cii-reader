@@ -102,7 +102,7 @@ void WmbNrf52::startWatchDog()
 */
 void WmbNrf52::resetWatchDog()
 {
-	MyLog::log("NRF52", "Reset Watchdog");
+	MyLog::log("NRF52", "Restart Watchdog");
 
 	NRF_WDT->RR[0] = WDT_RR_RR_Reload; 
 }
@@ -164,32 +164,17 @@ bool WmbNrf52::connectWlan()
  * @param event_type Event type
  * 
 */
-void WmbNrf52::dataHandler(uint16_t& event_type)
+void WmbNrf52::dataHandler(volatile uint16_t& event_type)
 {
-	// LoRa data receved handling
-	if ((event_type & LORA_DATA) == LORA_DATA)
-	{
-		// flag must be reset (required for wisblock)
-		event_type &= N_LORA_DATA;
-
-		MyLog::logHex("NRF52", "LoRaWAN RX data packet: ", g_rx_lora_data, g_rx_data_len);
-
-		SmCayenne smReceived(g_rx_data_len);
-
-        // store the settings into the current configuration
-		smReceived.smDecodeReceivedAppSettings(g_rx_lora_data, g_rx_data_len, m_appConfig);
-
-		// restart the board
-		api_reset();
-	}
+	MyLog::log("NRF52", "Data handler event type %d", event_type);
 
 	// LoRa TX finished handling, not guarantee to be called when semaphore is used
-	if ((g_task_event_type & LORA_TX_FIN) == LORA_TX_FIN)
+	if ((event_type & LORA_TX_FIN) == LORA_TX_FIN)
 	{
 		// flag must be reset (required for wisblock)
-		g_task_event_type &= N_LORA_TX_FIN;
+		event_type &= N_LORA_TX_FIN;
 
-		MyLog::log("NRF52", "LoRaWAN  TX cycle %s", g_rx_fin_result ? "finished ACK" : "failed NAK");
+		MyLog::log("NRF52", "LoRaWAN TX cycle %s", g_rx_fin_result ? "finished ACK" : "failed NAK");
 
 		if (g_rx_fin_result)
 		{

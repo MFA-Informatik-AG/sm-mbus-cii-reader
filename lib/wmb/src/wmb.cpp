@@ -48,7 +48,7 @@ Wmb::Wmb(WbMcuBase& wbMcu, SmBase& smartmeter, Gbt& gbt, Dlms& dlms, Hdlc& Hdlc,
  *
  * @param event_type The type of event to be handled.
  */
-void Wmb::dataHandler(uint16_t event_type)
+void Wmb::dataHandler(volatile uint16_t& event_type)
 {
     m_wbMcu.dataHandler(event_type);
 }
@@ -476,3 +476,17 @@ void Wmb::wmbadaper_addStates(SmCayenne& cayenne)
 	wmbadapter_addSendReadLoopsCounter(cayenne);
 	wmbadapter_addSendFailuresCounter(cayenne);
 }
+
+/**
+ * @brief Stores the current app configuration
+ * 
+ * This function stores the current app configuration into the wmb adapter flash.
+ * 
+ */
+
+void Wmb::saveAppConfig()
+{
+	save_appConfig(m_appConfig);
+}
+
+

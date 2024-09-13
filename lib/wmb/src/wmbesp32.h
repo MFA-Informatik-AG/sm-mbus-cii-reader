@@ -20,7 +20,7 @@ class WmbEsp32 : public WbMcuBase
     public:
         WmbEsp32(SmCayenne& smCayenne, AppConfig& appConfig);
         bool connectWlan() override;
-        void dataHandler(uint16_t& event_type) override;
+        void dataHandler(volatile uint16_t& event_type) override;
         void initApp() override;
         void startWatchDog() override;
         void resetWatchDog() override;

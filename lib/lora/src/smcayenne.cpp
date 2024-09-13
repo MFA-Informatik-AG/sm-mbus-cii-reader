@@ -304,11 +304,15 @@ void SmCayenne::smDecodeReceivedAppSettings(uint8_t const* data, size_t size, Ap
 		uint8_t channel = data[index++];
 		uint8_t type = data[index++];
 
+		MyLog::log("SMCAYENNE", "Get value from channel: %d and type: %d", channel, type);
+
 		if (channel == SMDECODE_CHANNEL_MEASUREINTERVAL)
 		{
 			if (type == SMDECODE_UINT32)
 			{
 				config.appTimer = getUint32FromByteArray(data, index);
+
+				MyLog::log("SMCAYENNE", "...set new value for appTimer to: %d", config.appTimer);
 			}
 		}
 
@@ -317,6 +321,8 @@ void SmCayenne::smDecodeReceivedAppSettings(uint8_t const* data, size_t size, Ap
 			if (type == SMDECODE_UINT32)
 			{
 				config.smCycleTimeout = getUint32FromByteArray(data, index);
+
+				MyLog::log("SMCAYENNE", "...set new value for smCycleTimeout to: %d", config.smCycleTimeout);
 			}
 		}
 
@@ -325,6 +331,8 @@ void SmCayenne::smDecodeReceivedAppSettings(uint8_t const* data, size_t size, Ap
 			if (type == SMDECODE_UINT8)
 			{
 				config.sendDataType = getUint8FromByteArray(data, index);
+
+				MyLog::log("SMCAYENNE", "...set new value for sendDataType to: %d", config.sendDataType);
 			}
 		}
 
@@ -333,6 +341,8 @@ void SmCayenne::smDecodeReceivedAppSettings(uint8_t const* data, size_t size, Ap
 			if (type == SMDECODE_BOOL)
 			{
 				config.decryptData = getBoolFromByteArray(data, index);
+			
+				MyLog::log("SMCAYENNE", "...set new value for decryptData to: %d", config.decryptData);
 			}
 		}
 
@@ -344,6 +354,8 @@ void SmCayenne::smDecodeReceivedAppSettings(uint8_t const* data, size_t size, Ap
 				{
 					config.authenticationKey[i] = data[index++];
 				}
+
+				MyLog::log("SMCAYENNE", "...set new value for authenticationKey");
 			}
 		}
 
@@ -355,6 +367,8 @@ void SmCayenne::smDecodeReceivedAppSettings(uint8_t const* data, size_t size, Ap
 				{
 					config.aes_key[i] = data[index++];
 				}
+
+				MyLog::log("SMCAYENNE", "...set new value for aes_key");
 			}
 		}
 
@@ -366,6 +380,8 @@ void SmCayenne::smDecodeReceivedAppSettings(uint8_t const* data, size_t size, Ap
 				{
 					config.aes_iv[i] = data[index++];
 				}
+
+				MyLog::log("SMCAYENNE", "...set new value for aes_iv");
 			}
 		}
 	}

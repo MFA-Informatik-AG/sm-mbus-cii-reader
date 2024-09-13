@@ -88,6 +88,22 @@ static int at_cmd_runcycle()
 }
 
 /**
+ * @brief Executes a wakeup cycle command.
+ *
+ * This function executes a wakeup.
+ *
+ * @return The result of the execution.
+ */
+static int at_cmd_wakeup()
+{
+	MyLog::log("APP", "Run wakeup");
+
+	api_wake_loop(STATUS);
+
+	return 0;
+}
+
+/**
  * @brief Executes the reset flash command.
  *
  * This function resets the stored configuration of the SmartMeter module to default values.
@@ -117,7 +133,8 @@ atcmd_t g_user_at_cmd_list_smat[] = {
 	// GNSS commands
 	{"+SMMINT", "Get/Set SmartMeter measurement interval (wakeup timer) in ms", at_query_measurementinterval, at_exec_measurementinterval, NULL, "RW"},
 	{"+SMREAD", "Run a SmartMeter read cycle with data transmision", NULL, NULL, at_cmd_runcycle, "R"},
-	{"+SMRESETCONFIG", "Reset the stored configuration to the default values", NULL, NULL, at_cmd_resetflash, "R"}
+	{"+SMRESETCONFIG", "Reset the stored configuration to the default values", NULL, NULL, at_cmd_resetflash, "R"},
+	{"+SMWAKEUP", "Runs a wakeup (STATUS) cycle", NULL, NULL, at_cmd_wakeup, "R"}
 };
 
 

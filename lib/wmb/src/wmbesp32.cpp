@@ -113,7 +113,7 @@ void WmbEsp32::startWatchDog()
 */
 void WmbEsp32::resetWatchDog()
 {
-	MyLog::log("ESP32", "Reset Watchdog");
+	MyLog::log("ESP32", "Restart Watchdog");
 
 	esp_task_wdt_reset();
 }
@@ -190,7 +190,7 @@ bool WmbEsp32::connectWlan()
  * @param event_type Event type
  * 
 */
-void WmbEsp32::dataHandler(uint16_t& event_type)
+void WmbEsp32::dataHandler(volatile uint16_t& event_type)
 {
 	// the function is currently not used for ESP32	
 }
