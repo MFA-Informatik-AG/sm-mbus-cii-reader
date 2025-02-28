@@ -6,17 +6,23 @@
  * It includes functions to retrieve and set the measurement interval, run a read cycle,
  * and reset the stored configuration to default values.
  * 
- * @version 1.0
+ * @version 1.1.0
  * @author MFA Informatik AG, Andreas Schneider
+ * @date 23.01.2024
+ * 
+ * Version History:
+ * 1.1.0	23.01.2024	Added support for ESP32
+ * 
  */
+
 #include <WisBlock-API-V2.h>
 
 #ifdef NRF52_SERIES
 #include "appsettings-nrf52.h"
 #endif 
 
-#ifdef ARDUINO_ARCH_ESP32
-//todo: add esp32 mcu
+#ifdef ESP32
+#include "appsettings-esp32.h"
 #endif
 
 #include "mylog.h"
@@ -35,7 +41,7 @@ static int at_query_measurementinterval()
 
 	AppSettings::loadConfiguration(appConfig);
 
-	snprintf(g_at_query_buf, ATQUERY_SIZE, "SmartMeter Measurement interval: %ld ms", appConfig.measureInterval);
+	snprintf(g_at_query_buf, ATQUERY_SIZE, "SmartMeter Measurement interval: %ld ms", appConfig.appTimer);
 
 	return 0;
 }
@@ -58,7 +64,7 @@ static int at_exec_measurementinterval(char *str)
 
 	AppSettings::loadConfiguration(appConfig);
 
-	appConfig.measureInterval = new_val;
+	appConfig.appTimer = new_val;
 
 	AppSettings::saveConfiguration(appConfig);
 
@@ -74,7 +80,25 @@ static int at_exec_measurementinterval(char *str)
  */
 static int at_cmd_runcycle()
 {
+	MyLog::log("APP", "Run SmartMeter read cycle");
+
 	api_wake_loop(AT_SM_READSENDCYCLE);
+
+	return 0;
+}
+
+/**
+ * @brief Executes a wakeup cycle command.
+ *
+ * This function executes a wakeup.
+ *
+ * @return The result of the execution.
+ */
+static int at_cmd_wakeup()
+{
+	MyLog::log("APP", "Run wakeup");
+
+	api_wake_loop(STATUS);
 
 	return 0;
 }
@@ -88,6 +112,8 @@ static int at_cmd_runcycle()
  */
 static int at_cmd_resetflash()
 {
+	MyLog::log("APP", "Reset SmartMeter configuration");
+
 	AppConfig appConfig;
 
 	AppSettings::resetConfiguration(appConfig);
@@ -96,18 +122,19 @@ static int at_cmd_resetflash()
 }
 
 /**
- * @brief Example user-defined AT command list.
+ * @brief user-defined AT command list.
  * 
  * This array stores user-defined AT commands.
  * Each element of the array represents a single AT command.
  * The format of each element is defined by the atcmd_t structure.
  */
-atcmd_t g_user_at_cmd_list_example[] = {
+atcmd_t g_user_at_cmd_list_smat[] = {
 	/*|    CMD    |     AT+CMD?      |    AT+CMD=?    |  AT+CMD=value |  AT+CMD  |  Permission  |*/
 	// GNSS commands
 	{"+SMMINT", "Get/Set SmartMeter measurement interval (wakeup timer) in ms", at_query_measurementinterval, at_exec_measurementinterval, NULL, "RW"},
 	{"+SMREAD", "Run a SmartMeter read cycle with data transmision", NULL, NULL, at_cmd_runcycle, "R"},
-	{"+SMRESETCONFIG", "Reset the stored configuration to the default values", NULL, NULL, at_cmd_resetflash, "R"}
+	{"+SMRESETCONFIG", "Reset the stored configuration to the default values", NULL, NULL, at_cmd_resetflash, "R"},
+	{"+SMWAKEUP", "Runs a wakeup (STATUS) cycle", NULL, NULL, at_cmd_wakeup, "R"}
 };
 
 
@@ -119,7 +146,7 @@ atcmd_t g_user_at_cmd_list_example[] = {
  */
 void smcustom_at_init() 
 {
-	g_user_at_cmd_list = g_user_at_cmd_list_example;
-	g_user_at_cmd_num = sizeof(g_user_at_cmd_list_example) / sizeof(atcmd_t);
+	g_user_at_cmd_list = g_user_at_cmd_list_smat;
+	g_user_at_cmd_num = sizeof(g_user_at_cmd_list_smat) / sizeof(atcmd_t);
 }
 

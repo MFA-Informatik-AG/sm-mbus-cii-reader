@@ -4,11 +4,18 @@
  * 
  * This file contains the declaration of the application configuration.
  * 
- * @version 1.0
+ * @version 1.1.0
  * @author MFA Informatik AG, Andreas Schneider
+ * @date 23.01.2024
+ * 
+ * Version History:
+ * 1.1.0    23.01.2024  Added support for ESP32/WLAN EP connection, refactored measurement into apiTimer
+ *                      
  */
 
 #pragma once
+
+#include <stdint.h>
 
 struct AppConfig {
 
@@ -16,8 +23,7 @@ struct AppConfig {
     static const uint8_t SM_SENDDATATYPE_GBTLASTBLOCK = 1;      // send last block of gbt data
     static const uint32_t SM_MEASURE_INTERVAL = 900000;         // default measure interval in ms
     static const uint32_t SM_CYCLE_TIMEOUT = 90000;             // default smartmeter read cycle timeout in ms 
-
-    uint32_t measureInterval = SM_MEASURE_INTERVAL;
+    
     uint32_t smCycleTimeout = SM_CYCLE_TIMEOUT;
     uint8_t sendDataType = SM_SENDDATATYPE_GBTPARSED;
     bool decryptData = false;                                   // decrypt data from smartmeter (currently not fully implemented)
@@ -31,6 +37,11 @@ struct AppConfig {
     // iv for cbc 12 bytes for smartmeter decryption
     uint8_t aes_iv[16] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 
-    uint32_t g_appTimer = SM_MEASURE_INTERVAL;	                // measurement intervall (=wakeup timer in ms)
-    uint32_t m_sm_readLoops = 0;							    // counter, read loops
+    uint32_t appTimer = SM_MEASURE_INTERVAL;	                // measurement intervall (=wakeup timer in ms)
+
+    std::string apiep_hostname = "api.smartspar.ch";            // backend host name for direct connection
+    uint16_t apiep_port = 443;                                  // backend port for direct connection
+    std::string apiep_url = "/wmb";                             // backend url for post wmb data
+    std::string apiep_apikey = "";                              // backend api key for post wmb data
+    std::string apiep_certfingerprint = "";                     // backend host fingerprint for tls connection
 };

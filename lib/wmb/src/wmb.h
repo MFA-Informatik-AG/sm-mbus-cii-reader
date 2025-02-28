@@ -28,14 +28,15 @@ class Wmb
         bool initApp();                                                                                                             // initialize the application                            
         void setupApp();                                                                                                            // setup the application                    
         void smReadSendcycle();                                                                                                     // read and send data from the smart meter
-        void dataHandler(uint16_t event_type);                                                                                      // handle data received from the WAN                  
+        void dataHandler(volatile uint16_t& event_type);                                                                            // handle data received from the WAN                  
         void gbtFrameHandler(uint8_t const* data, size_t const size);                                                               // handle GBT frames received from the smart meter
         void hdlcFrameHandler(uint8_t const* data, size_t const size, bool const valid);                                            // handle HDLC frames received from the smart meter
+        void smDeepSleep();                                                                                                         // put the smart meter into deep sleep mode
+        void saveAppConfig();                                                                                                       // save the application configuration
 
     private:
         static const int SM_GBT_MAXFRAMESIZE = 1024;            // maximum size of the GBT frame
 
-        uint32_t g_appTimer = AppConfig::SM_MEASURE_INTERVAL;	// measurement intervall (=wakeup timer in ms)
         uint16_t m_send_fail = 0;								// counter, WAN send fails
         uint32_t m_sm_readLoops = 0;							// counter, total of read loops
 

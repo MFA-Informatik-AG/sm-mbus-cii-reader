@@ -12,6 +12,7 @@
  * 
  * @version 1.0
  * @author MFA Informatik AG, Andreas Schneider
+ * 
  */
 #include "gbtdata.h"					
 #include "mylog.h"						
@@ -47,11 +48,9 @@ Wmb::Wmb(WbMcuBase& wbMcu, SmBase& smartmeter, Gbt& gbt, Dlms& dlms, Hdlc& Hdlc,
  *
  * @param event_type The type of event to be handled.
  */
-void Wmb::dataHandler(uint16_t event_type)
+void Wmb::dataHandler(volatile uint16_t& event_type)
 {
     m_wbMcu.dataHandler(event_type);
-
-    m_wbMcu.resetWatchDog();
 }
 
 /**
@@ -62,6 +61,16 @@ void Wmb::setupApp()
      m_wbMcu.startWatchDog();
 } 
 
+
+/**
+ * @brief Puts the smart meter into deep sleep mode.
+ * 
+ * This function puts the smart meter into deep sleep mode.
+ */
+void Wmb::smDeepSleep()
+{
+	m_wbMcu.smDeepSleep();
+}
 
 /**
  * @brief Initializes the WMB application.
@@ -78,7 +87,7 @@ bool Wmb::initApp()
 
 	m_wbMcu.loadConfiguration(m_appConfig);
 
-	MyLog::log("APPSETTINGS", "...measureInterval: %d", m_appConfig.measureInterval);
+	MyLog::log("APPSETTINGS", "...appTimer: %d", m_appConfig.appTimer);
     MyLog::log("APPSETTINGS", "...sendDataType: %d", m_appConfig.sendDataType);
     MyLog::log("APPSETTINGS", "...decryptData: %d", m_appConfig.decryptData);
     MyLog::log("APPSETTINGS", "...smCycleTimeout: %d", m_appConfig.smCycleTimeout);
@@ -91,8 +100,6 @@ bool Wmb::initApp()
 	}
 
 	MyLog::log("WMB", "...reading global values for WisBlock timer");
-
-	g_appTimer = m_appConfig.measureInterval;
 
     m_wbMcu.initApp();
 
@@ -115,7 +122,7 @@ void Wmb::smReadSendcycle()
 	// adds the adapter states into the cayenne buffer
 	wmbadaper_addStates(m_smCayenne);
 
-	if(!m_wbMcu.isWlanConnected())
+	if(!m_wbMcu.connectWlan())
 	{
 		MyLog::log("WMB", "WLAN not connected, skip sending");
 
@@ -138,7 +145,9 @@ void Wmb::smReadSendcycle()
 
 			if(cayenneError == 0)
 			{
-				m_wbMcu.enqueueDataPacket(m_smCayenne.getBuffer(), gbtSize, 0);
+				lmh_error_status enqueueStatus =m_wbMcu.enqueueDataPacket(m_smCayenne.getBuffer(), gbtSize, 0);
+
+				MyLog::log("WMB", "...enqueued GBT packed result %d", enqueueStatus);
 			}
 			else	
 			{
@@ -270,7 +279,7 @@ void Wmb::hdlcFrameHandler(const uint8_t *data, size_t const size, bool const va
 
 	MyLog::logHex("WMB", "Frame content: ", data, size);
 
-	// remove the m_hdlc header and footer
+	// remove the HDLC header and footer
     uint8_t hdlcData[size];
     size_t hdlcDataSize = size - 8;
 
@@ -319,12 +328,12 @@ void Wmb::smReadcycle()
 
 	MyLog::log("WMB", "...serial port opened");
 
-	MyLog::log("WMB", "...reset the m_hdlc protocol handler");
+	MyLog::log("WMB", "...reset the HDLC protocol handler");
 
 	// reset the m_dlms receive buffer
 	m_dlms.reset();
 
-	MyLog::log("WMB", "...m_hdlc protocol handler reset");
+	MyLog::log("WMB", "...HDLC protocol handler reset");
 
 	MyLog::log("WMB", "...set the receive cycle with timeout %u", m_appConfig.smCycleTimeout);
 
@@ -355,7 +364,7 @@ void Wmb::smReadcycle()
 
 				digitalWrite(LED_BUILTIN, newState);
 
-				// enqueue the byte into the m_hdlc protocol handler
+				// enqueue the byte into the HDLC protocol handler
 				m_hdlc.charReceiver((uint8_t) number);
 			}
 		}
@@ -467,3 +476,17 @@ void Wmb::wmbadaper_addStates(SmCayenne& cayenne)
 	wmbadapter_addSendReadLoopsCounter(cayenne);
 	wmbadapter_addSendFailuresCounter(cayenne);
 }
+
+/**
+ * @brief Stores the current app configuration
+ * 
+ * This function stores the current app configuration into the wmb adapter flash.
+ * 
+ */
+
+void Wmb::saveAppConfig()
+{
+	save_appConfig(m_appConfig);
+}
+
+

@@ -12,10 +12,21 @@ This repository contains open-source software for interfacing with a smart meter
 - Expandable for other microcontroller units (MCUs) with WLAN support.
 - Open to the Community-driven development and support.
 
-## Hardware Requirements
+## Hardware Requirements for LoRaWAN
+- [RAK WisBlock Base Module (there are severall ones)](https://store.rakwireless.com/products/rak19007-wisblock-base-board-2nd-gen?m=5&h=wisblock-base)
 - [RAKwireless WisBlock RAK4631 Core Module](https://docs.rakwireless.com/Product-Categories/WisBlock/RAK4631/Overview)
+- [PlatformIO setup for RAK 4631](https://github.com/RAKWireless/WisBlock/tree/master/PlatformIO/RAK4630)
 - [Wired M-BUS adapter (make it yourself)](https://github.com/MFA-Informatik-AG/rak-wisblock-io-mbus) or buy it from [Wired M-BUS adapter shop](https://shop.smartspar.ch/products/wired-m-bus-adapter)
 - LoRaWAN Gateway (for data transmission)
+
+## Hardware Requirements for ESP32/WLAN
+- [RAK WisBlock Base Module (there are severall ones)](https://store.rakwireless.com/products/rak19007-wisblock-base-board-2nd-gen?m=5&h=wisblock-base)
+- [RAK WisBlock RAK11200 Module](https://store.rakwireless.com/products/wiscore-esp32-module-rak11200)
+- [PlatformIO setup for RAK 11200](https://github.com/RAKWireless/WisBlock/blob/master/PlatformIO/RAK11200/Installation%20of%20RAK11200%20Board%20Support%20in%20PlatformIO.md)
+- [Wired M-BUS adapter (make it yourself)](https://github.com/MFA-Informatik-AG/rak-wisblock-io-mbus) or buy it from [Wired M-BUS adapter shop](https://shop.smartspar.ch/products/wired-m-bus-adapter)
+
+
+
 
 ## Installation
 Please clone the repository to your local machine from 
@@ -151,3 +162,6 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 Many thanks to RAK Wireless for WisBlock and especially Bernd Giesecke for his [WisBlock API](https://github.com/beegee-tokyo/WisBlock-API-V2)
 
 ## Changelog
+|Date           | Change                                                    |
+|--             | --                                                        |
+|23.01.2024     | Added support for ESP32                                   |
